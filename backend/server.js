@@ -1,3 +1,4 @@
+require('./config/db');
 // Import the packages we installed
 const express = require('express');
 const cors = require('cors');
@@ -10,7 +11,7 @@ dotenv.config();
 const app = express();
 
 // Middleware — runs on every request
-app.use(cors());         // connect to fronten
+app.use(cors());         // connect to frontend
 app.use(express.json()); // Understand JSON data sent by frontend
 
 // Test route — when someone visits '/' show this message
