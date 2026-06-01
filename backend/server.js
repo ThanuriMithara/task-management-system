@@ -1,4 +1,4 @@
-require('./config/db');
+
 // Import the packages we installed
 const express = require('express');
 const cors = require('cors');
@@ -7,12 +7,21 @@ const dotenv = require('dotenv');
 // Load the .env file (secret keys)
 dotenv.config();
 
+require('./config/db');
+
+// Import routes
+const authRoutes = require('./routes/authRoutes');
+
+
 // Create the server 
 const app = express();
 
 // Middleware — runs on every request
 app.use(cors());         // connect to frontend
 app.use(express.json()); // Understand JSON data sent by frontend
+
+// Routes
+app.use('/api/auth', authRoutes);
 
 // Test route — when someone visits '/' show this message
 app.get('/', (req, res) => {
