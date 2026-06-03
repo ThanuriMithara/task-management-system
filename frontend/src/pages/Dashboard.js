@@ -5,6 +5,14 @@ import { useNavigate } from 'react-router-dom';
 const Dashboard = () => {
   const [tasks, setTasks] = useState([]);
   const [error, setError] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [newTask, setNewTask] = useState({
+    title: '',
+    description: '',
+    priority: 'Medium',
+    due_date: '',
+    assigned_to: 1
+  });
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user'));
   const token = localStorage.getItem('token');
@@ -30,6 +38,26 @@ const Dashboard = () => {
     navigate('/');
   };
 
+  const handleCreateTask = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post('http://localhost:5000/api/tasks', newTask, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setShowForm(false);
+      setNewTask({
+        title: '',
+        description: '',
+        priority: 'Medium',
+        due_date: '',
+        assigned_to: 1
+      });
+      fetchTasks();
+    } catch (err) {
+      setError('Failed to create task!');
+    }
+  };
+
   const updateStatus = async (id, status) => {
     try {
       const task = tasks.find(t => t.id === id);
@@ -43,13 +71,6 @@ const Dashboard = () => {
     } catch (err) {
       setError('Failed to update task!');
     }
-  };
-
-  const getStatusColor = (status) => {
-    if (status === 'To Do') return '#ff4d4d';
-    if (status === 'In Progress') return '#ffa500';
-    if (status === 'Completed') return '#00c853';
-    return '#gray';
   };
 
   return (
@@ -67,15 +88,65 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <div style={styles.content}>
-        <h3>Your Tasks</h3>
+        <div style={styles.header}>
+          <h3>Your Tasks</h3>
+          <button
+            style={styles.addBtn}
+            onClick={() => setShowForm(!showForm)}
+          >
+            {showForm ? 'Cancel' : '+ Add Task'}
+          </button>
+        </div>
+
         {error && <p style={styles.error}>{error}</p>}
+
+        {/* Task Creation Form */}
+        {showForm && (
+          <div style={styles.formBox}>
+            <h4>Create New Task</h4>
+            <form onSubmit={handleCreateTask}>
+              <input
+                style={styles.input}
+                type="text"
+                placeholder="Task Title"
+                value={newTask.title}
+                onChange={(e) => setNewTask({...newTask, title: e.target.value})}
+                required
+              />
+              <textarea
+                style={styles.input}
+                placeholder="Description"
+                value={newTask.description}
+                onChange={(e) => setNewTask({...newTask, description: e.target.value})}
+              />
+              <select
+                style={styles.input}
+                value={newTask.priority}
+                onChange={(e) => setNewTask({...newTask, priority: e.target.value})}
+              >
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+              </select>
+              <input
+                style={styles.input}
+                type="date"
+                value={newTask.due_date}
+                onChange={(e) => setNewTask({...newTask, due_date: e.target.value})}
+              />
+              <button style={styles.submitBtn} type="submit">
+                Create Task
+              </button>
+            </form>
+          </div>
+        )}
 
         {/* Kanban Board */}
         <div style={styles.kanban}>
           {/* To Do Column */}
           <div style={styles.column}>
             <h4 style={{...styles.columnTitle, backgroundColor: '#ff4d4d'}}>
-              To Do
+              To Do ({tasks.filter(t => t.status === 'To Do').length})
             </h4>
             {tasks.filter(t => t.status === 'To Do').map(task => (
               <div key={task.id} style={styles.card}>
@@ -95,7 +166,7 @@ const Dashboard = () => {
           {/* In Progress Column */}
           <div style={styles.column}>
             <h4 style={{...styles.columnTitle, backgroundColor: '#ffa500'}}>
-              In Progress
+              In Progress ({tasks.filter(t => t.status === 'In Progress').length})
             </h4>
             {tasks.filter(t => t.status === 'In Progress').map(task => (
               <div key={task.id} style={styles.card}>
@@ -115,7 +186,7 @@ const Dashboard = () => {
           {/* Completed Column */}
           <div style={styles.column}>
             <h4 style={{...styles.columnTitle, backgroundColor: '#00c853'}}>
-              Completed
+              Completed ({tasks.filter(t => t.status === 'Completed').length})
             </h4>
             {tasks.filter(t => t.status === 'Completed').map(task => (
               <div key={task.id} style={styles.card}>
@@ -162,6 +233,45 @@ const styles = {
   },
   content: {
     padding: '30px'
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  addBtn: {
+    padding: '10px 20px',
+    backgroundColor: '#1a73e8',
+    color: 'white',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontSize: '14px'
+  },
+  formBox: {
+    backgroundColor: 'white',
+    padding: '20px',
+    borderRadius: '10px',
+    marginBottom: '20px',
+    boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+  },
+  input: {
+    width: '100%',
+    padding: '10px',
+    marginBottom: '10px',
+    borderRadius: '5px',
+    border: '1px solid #ddd',
+    fontSize: '14px',
+    boxSizing: 'border-box'
+  },
+  submitBtn: {
+    padding: '10px 20px',
+    backgroundColor: '#00c853',
+    color: 'white',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontSize: '14px'
   },
   kanban: {
     display: 'flex',
