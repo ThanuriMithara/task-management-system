@@ -1,13 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const { register, login } = require('../controllers/authController');
+const { protect } = require('../middleware/authMiddleware');
 
-// Register route
-// POST http://localhost:5000/api/auth/register
+// Public routes
 router.post('/register', register);
-
-// Login route
-// POST http://localhost:5000/api/auth/login
 router.post('/login', login);
+
+// Protected test route
+router.get('/me', protect, (req, res) => {
+  res.json({ message: 'You are logged in!', user: req.user });
+});
 
 module.exports = router;
