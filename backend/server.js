@@ -6,6 +6,9 @@ dotenv.config();
 
 require('./config/db');
 
+// Import swagger
+const { swaggerUi, specs } = require('./config/swagger');
+
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes');
@@ -16,6 +19,9 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 // Routes
 app.use('/api/auth', authRoutes);
